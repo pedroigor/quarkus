@@ -1,0 +1,5 @@
+mp.jwt.verify.publickey.location=http://localhost:8180/auth/realms/protean/protocol/openid-connect/certs
+mp.jwt.verify.issuer=http://localhost:8180/auth/realms/protean
+
+quarkus.jwt.auth-mechanism=MP-JWT
+quarkus.jwt.enabled=true
