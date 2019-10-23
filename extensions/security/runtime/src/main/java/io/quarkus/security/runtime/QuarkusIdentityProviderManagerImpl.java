@@ -32,7 +32,7 @@ public class QuarkusIdentityProviderManagerImpl implements IdentityProviderManag
     private final List<SecurityIdentityAugmentor> augmenters;
     private final Executor blockingExecutor;
 
-    private static final AuthenticationRequestContext blockingRequestContext = new AuthenticationRequestContext() {
+    private static final AuthenticationRequestContext blockingRequestContext = new AuthenticationRequestContext<SecurityIdentity>() {
         @Override
         public CompletionStage<SecurityIdentity> runBlocking(Supplier<SecurityIdentity> function) {
             CompletableFuture<SecurityIdentity> ret = new CompletableFuture<>();
@@ -211,7 +211,7 @@ public class QuarkusIdentityProviderManagerImpl implements IdentityProviderManag
         }
     }
 
-    private class AsyncAuthenticationRequestContext implements AuthenticationRequestContext {
+    private class AsyncAuthenticationRequestContext implements AuthenticationRequestContext<SecurityIdentity> {
 
         private boolean inBlocking = false;
 
@@ -220,22 +220,18 @@ public class QuarkusIdentityProviderManagerImpl implements IdentityProviderManag
             if (inBlocking) {
                 return blockingRequestContext.runBlocking(function);
             }
-            CompletableFuture<SecurityIdentity> cf = new CompletableFuture<>();
-            blockingExecutor.execute(new Runnable() {
+
+            return CompletableFuture.supplyAsync(new Supplier<SecurityIdentity>() {
                 @Override
-                public void run() {
+                public SecurityIdentity get() {
                     try {
                         inBlocking = true;
-                        cf.complete(function.get());
-                    } catch (Throwable t) {
-                        cf.completeExceptionally(t);
+                        return function.get();
                     } finally {
                         inBlocking = false;
                     }
                 }
-            });
-
-            return cf;
+            }, blockingExecutor);
         }
     }
 }

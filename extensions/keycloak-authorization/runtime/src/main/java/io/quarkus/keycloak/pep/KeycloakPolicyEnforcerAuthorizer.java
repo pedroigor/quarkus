@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
@@ -20,6 +21,7 @@ import org.keycloak.representations.adapters.config.PolicyEnforcerConfig;
 
 import io.quarkus.arc.AlternativePriority;
 import io.quarkus.oidc.OidcConfig;
+import io.quarkus.security.identity.AuthenticationRequestContext;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.HttpAuthorizer;
@@ -33,21 +35,35 @@ public class KeycloakPolicyEnforcerAuthorizer extends HttpAuthorizer {
     private KeycloakAdapterPolicyEnforcer delegate;
 
     @Override
-    public CompletionStage<SecurityIdentity> checkPermission(RoutingContext routingContext) {
-        VertxHttpFacade httpFacade = new VertxHttpFacade(routingContext);
-        AuthorizationContext result = delegate.authorize(httpFacade);
+    public CompletionStage<SecurityIdentity> checkPermission(RoutingContext routingContext,
+            AuthenticationRequestContext<SecurityIdentity> context) {
+        return context.runBlocking(new Supplier<SecurityIdentity>() {
+            @Override
+            public SecurityIdentity get() {
+                VertxHttpFacade httpFacade = new VertxHttpFacade(routingContext);
+                AuthorizationContext result = delegate.authorize(httpFacade);
 
-        if (result.isGranted()) {
-            QuarkusHttpUser user = (QuarkusHttpUser) routingContext.user();
+                if (result.isGranted()) {
+                    QuarkusHttpUser user = (QuarkusHttpUser) routingContext.user();
 
-            if (user == null) {
-                return attemptAnonymousAuthentication(routingContext);
+                    if (user == null) {
+                        try {
+                            return attemptAnonymousAuthentication(routingContext).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        try {
+                            return  enhanceSecurityIdentity(user.getSecurityIdentity(), result).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+
+                return null;
             }
-
-            return enhanceSecurityIdentity(user.getSecurityIdentity(), result);
-        }
-
-        return CompletableFuture.completedFuture(null);
+        });
     }
 
     private CompletableFuture<SecurityIdentity> enhanceSecurityIdentity(SecurityIdentity current,

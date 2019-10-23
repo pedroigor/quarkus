@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.quarkus.security.identity.AuthenticationRequestContext;
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.request.AnonymousAuthenticationRequest;
@@ -35,7 +36,8 @@ public class HttpAuthorizer {
     @Inject
     IdentityProviderManager identityProviderManager;
 
-    public CompletionStage<SecurityIdentity> checkPermission(RoutingContext routingContext) {
+    public CompletionStage<SecurityIdentity> checkPermission(RoutingContext routingContext,
+            AuthenticationRequestContext<SecurityIdentity> context) {
         QuarkusHttpUser user = (QuarkusHttpUser) routingContext.user();
         if (user == null) {
             //check the anonymous identity
