@@ -92,7 +92,7 @@ public class HttpAuthenticator {
 
         @Override
         public CompletionStage<ChallengeData> getChallenge(RoutingContext context) {
-            ChallengeData challengeData = new ChallengeData(HttpResponseStatus.FORBIDDEN.code(), null, null);
+            ChallengeData challengeData = new ChallengeData(HttpResponseStatus.UNAUTHORIZED.code(), null, null);
             return CompletableFuture.completedFuture(challengeData);
         }
 
