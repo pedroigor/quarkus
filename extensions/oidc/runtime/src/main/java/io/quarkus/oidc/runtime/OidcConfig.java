@@ -1,4 +1,4 @@
-package io.quarkus.oidc;
+package io.quarkus.oidc.runtime;
 
 import java.util.Optional;
 

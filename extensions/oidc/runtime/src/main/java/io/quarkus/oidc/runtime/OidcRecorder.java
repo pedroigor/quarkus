@@ -1,4 +1,4 @@
-package io.quarkus.oidc;
+package io.quarkus.oidc.runtime;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -14,7 +14,7 @@ import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.providers.KeycloakAuth;
 
 @Recorder
-public class VertxKeycloakRecorder {
+public class OidcRecorder {
 
     public void setup(OidcConfig config, RuntimeValue<Vertx> vertx, BeanContainer beanContainer) {
         OAuth2ClientOptions options = new OAuth2ClientOptions();
@@ -57,9 +57,8 @@ public class VertxKeycloakRecorder {
         });
 
         OAuth2Auth auth = cf.join();
-        beanContainer.instance(VertxOAuth2IdentityProvider.class).setAuth(auth);
-        VertxOAuth2AuthenticationMechanism mechanism = beanContainer.instance(VertxOAuth2AuthenticationMechanism.class);
+        beanContainer.instance(OidcIdentityProvider.class).setAuth(auth);
+        OidcAuthenticationMechanism mechanism = beanContainer.instance(OidcAuthenticationMechanism.class);
         mechanism.setAuth(auth);
-        mechanism.setAuthServerURI(config.authServerUrl);
     }
 }

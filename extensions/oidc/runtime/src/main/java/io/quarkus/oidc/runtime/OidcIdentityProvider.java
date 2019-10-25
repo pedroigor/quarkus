@@ -1,4 +1,4 @@
-package io.quarkus.oidc;
+package io.quarkus.oidc.runtime;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -21,7 +21,7 @@ import io.vertx.ext.auth.oauth2.AccessToken;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 
 @ApplicationScoped
-public class VertxOAuth2IdentityProvider implements IdentityProvider<TokenAuthenticationRequest> {
+public class OidcIdentityProvider implements IdentityProvider<TokenAuthenticationRequest> {
 
     private volatile OAuth2Auth auth;
 
@@ -29,7 +29,7 @@ public class VertxOAuth2IdentityProvider implements IdentityProvider<TokenAuthen
         return auth;
     }
 
-    public VertxOAuth2IdentityProvider setAuth(OAuth2Auth auth) {
+    public OidcIdentityProvider setAuth(OAuth2Auth auth) {
         this.auth = auth;
         return this;
     }
@@ -59,7 +59,7 @@ public class VertxOAuth2IdentityProvider implements IdentityProvider<TokenAuthen
                     JwtClaims jwtClaims = JwtClaims.parse(token.accessToken().encode());
 
                     String username = token.principal().getString("username");
-                    builder.setPrincipal(new VertxJwtCallerPrincipal(username, jwtClaims));
+                    builder.setPrincipal(new OidcJwtCallerPrincipal(username, jwtClaims));
                 } catch (InvalidJwtException e) {
                     result.completeExceptionally(e);
                     return;

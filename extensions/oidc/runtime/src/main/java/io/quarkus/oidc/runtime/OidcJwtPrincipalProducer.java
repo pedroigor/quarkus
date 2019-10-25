@@ -1,4 +1,4 @@
-package io.quarkus.oidc;
+package io.quarkus.oidc.runtime;
 
 import java.util.Set;
 
@@ -15,7 +15,7 @@ import io.quarkus.security.identity.SecurityIdentity;
 @Priority(2)
 @Alternative
 @RequestScoped
-public class VertxJwtPrincipalProducer {
+public class OidcJwtPrincipalProducer {
 
     @Inject
     SecurityIdentity identity;
