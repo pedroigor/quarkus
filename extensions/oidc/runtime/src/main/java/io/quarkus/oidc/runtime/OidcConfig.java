@@ -55,6 +55,12 @@ public class OidcConfig {
     @ConfigItem
     Credentials credentials;
 
+    /**
+     * The client type, which can be one of the following values from enum {@link ClientType}..
+     */
+    @ConfigItem(defaultValue = "service")
+    ClientType clientType;
+
     public String getAuthServerUrl() {
         return authServerUrl;
     }
@@ -65,6 +71,10 @@ public class OidcConfig {
 
     public Credentials getCredentials() {
         return credentials;
+    }
+
+    public ClientType getClientType() {
+        return clientType;
     }
 
     @ConfigGroup
@@ -81,4 +91,16 @@ public class OidcConfig {
         }
     }
 
+    public enum ClientType {
+        /**
+         * A {@code WEB_APP} is a client that server pages, usually a frontend application. For this type of client the Authorization Code Flow is
+         * defined as the preferred method for authenticating users.
+         */
+        WEB_APP,
+
+        /**
+         * A {@code SERVICE} is a client that has a set of protected HTTP resources, usually a backend application following the RESTful Architectural Design. For this type of client, the Bearer Authorization method is defined as the preferred method for authenticating and authorizing users.
+         */
+        SERVICE
+    }
 }

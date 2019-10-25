@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 
+import io.quarkus.oidc.runtime.OidcConfig;
 import org.keycloak.AuthorizationContext;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.authorization.KeycloakAdapterPolicyEnforcer;
@@ -19,7 +20,6 @@ import org.keycloak.representations.adapters.config.AdapterConfig;
 import org.keycloak.representations.adapters.config.PolicyEnforcerConfig;
 
 import io.quarkus.arc.AlternativePriority;
-import io.quarkus.oidc.OidcConfig;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.HttpAuthorizer;

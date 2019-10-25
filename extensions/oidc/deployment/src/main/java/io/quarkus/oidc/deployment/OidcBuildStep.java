@@ -7,7 +7,8 @@ import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.EnableAllSecurityServicesBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.quarkus.oidc.runtime.OidcAuthenticationMechanism;
+import io.quarkus.oidc.runtime.BearerAuthenticationMechanism;
+import io.quarkus.oidc.runtime.CodeAuthenticationMechanism;
 import io.quarkus.oidc.runtime.OidcConfig;
 import io.quarkus.oidc.runtime.OidcIdentityProvider;
 import io.quarkus.oidc.runtime.OidcJwtPrincipalProducer;
@@ -24,10 +25,15 @@ public class OidcBuildStep {
     @BuildStep
     public AdditionalBeanBuildItem beans(OidcConfig config) {
         if (config.enabled) {
-            return AdditionalBeanBuildItem.builder().setUnremovable()
-                    .addBeanClass(OidcAuthenticationMechanism.class)
-                    .addBeanClass(OidcJwtPrincipalProducer.class)
-                    .addBeanClass(OidcIdentityProvider.class).build();
+            AdditionalBeanBuildItem.Builder beans = AdditionalBeanBuildItem.builder().setUnremovable();
+
+            if (OidcConfig.ClientType.SERVICE.equals(config.getClientType())) {
+                beans.addBeanClass(BearerAuthenticationMechanism.class);
+            } else if (OidcConfig.ClientType.WEB_APP.equals(config.getClientType())) {
+                beans.addBeanClass(CodeAuthenticationMechanism.class);
+            }
+
+            return beans.addBeanClass(OidcJwtPrincipalProducer.class).addBeanClass(OidcIdentityProvider.class).build();
         }
 
         return null;

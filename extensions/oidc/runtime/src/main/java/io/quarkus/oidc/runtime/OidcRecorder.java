@@ -58,7 +58,14 @@ public class OidcRecorder {
 
         OAuth2Auth auth = cf.join();
         beanContainer.instance(OidcIdentityProvider.class).setAuth(auth);
-        OidcAuthenticationMechanism mechanism = beanContainer.instance(OidcAuthenticationMechanism.class);
-        mechanism.setAuth(auth);
+        AbstractOidcAuthenticationMechanism mechanism = null;
+        
+        if (OidcConfig.ClientType.SERVICE.equals(config.clientType)) {
+            mechanism = beanContainer.instance(BearerAuthenticationMechanism.class);
+        } else if (OidcConfig.ClientType.WEB_APP.equals(config.clientType)) {
+            mechanism = beanContainer.instance(CodeAuthenticationMechanism.class);
+        }
+        
+        mechanism.setAuth(auth, vertx.getValue());
     }
 }

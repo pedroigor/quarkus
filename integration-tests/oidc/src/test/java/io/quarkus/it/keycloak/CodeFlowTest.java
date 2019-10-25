@@ -1,6 +1,7 @@
 package io.quarkus.it.keycloak;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.List;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.util.Cookie;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.AfterAll;
@@ -98,7 +100,8 @@ public class CodeFlowTest {
         ClientRepresentation client = new ClientRepresentation();
 
         client.setClientId(clientId);
-        client.setPublicClient(true);
+        client.setPublicClient(false);
+        client.setSecret("secret");
         client.setDirectAccessGrantsEnabled(true);
         client.setEnabled(true);
         client.setRedirectUris(Arrays.asList("*"));
@@ -126,7 +129,7 @@ public class CodeFlowTest {
     }
 
     @Test
-    public void testSuccessfulCodeFlow() throws IOException {
+    public void testCodeFlowNoConsent() throws IOException {
         try (final WebClient webClient = new WebClient()) {
             HtmlPage page = webClient.getPage("http://localhost:8081/index.html");
 
@@ -140,6 +143,54 @@ public class CodeFlowTest {
             page = loginForm.getInputByName("login").click();
 
             assertEquals("Welcome to Test App", page.getTitleText());
+     
+            page = webClient.getPage("http://localhost:8081/index.html");
+
+            assertEquals("Welcome to Test App", page.getTitleText(), "A second request should not redirect and just re-authenticate the user");
         }
+    }
+
+    @Test
+    public void testLogout() throws IOException, InterruptedException {
+        try (final WebClient webClient = new WebClient()) {
+            HtmlPage page = webClient.getPage("http://localhost:8081/index.html");
+
+            assertEquals("Log in to quarkus", page.getTitleText());
+
+            HtmlForm loginForm = page.getForms().get(0);
+
+            loginForm.getInputByName("username").setValueAttribute("alice");
+            loginForm.getInputByName("password").setValueAttribute("alice");
+
+            page = loginForm.getInputByName("login").click();
+
+            assertEquals("Welcome to Test App", page.getTitleText());
+
+            logout(webClient);
+
+            page = webClient.getPage("http://localhost:8081/index.html");
+
+            Cookie sessionCookie = getSessionCookie(webClient);
+
+            assertNull(sessionCookie);
+
+            page = webClient.getPage("http://localhost:8081/index.html");
+            
+            assertEquals("Log in to quarkus", page.getTitleText());
+        }
+    }
+
+    private void logout(WebClient webClient) {
+        Cookie sessionCookie = getSessionCookie(webClient);
+
+        RestAssured
+                .given()
+                .when()
+                .get(KEYCLOAK_SERVER_URL + "/realms/quarkus/protocol/openid-connect/logout?id_token_hint=" + sessionCookie.getValue()).then()
+                .statusCode(200);
+    }
+
+    private Cookie getSessionCookie(WebClient webClient) {
+        return webClient.getCookieManager().getCookie("q_session");
     }
 }
