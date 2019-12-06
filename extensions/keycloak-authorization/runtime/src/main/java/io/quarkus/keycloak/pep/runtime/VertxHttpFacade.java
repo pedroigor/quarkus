@@ -10,6 +10,7 @@ import java.util.List;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.security.cert.X509Certificate;
 
+import io.vertx.core.http.HttpHeaders;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.adapters.OIDCHttpFacade;
 import org.keycloak.adapters.spi.AuthenticationError;
@@ -107,7 +108,16 @@ public class VertxHttpFacade implements OIDCHttpFacade {
 
             @Override
             public String getHeader(String name) {
-                return request.getHeader(name);
+                //TODO: this logic should be removed once KEYCLOAK-12412 is fixed
+                String value = request.getHeader(name);
+
+                if (name.equalsIgnoreCase(HttpHeaders.CONTENT_TYPE.toString())) {
+                    if (value.indexOf(';') != -1) {
+                        return value.substring(0, value.indexOf(';'));
+                    }
+                }
+
+                return value;
             }
 
             @Override
