@@ -175,14 +175,20 @@ public class OidcTenantConfig {
          * The client secret
          */
         @ConfigItem
-        Optional<String> secret = Optional.empty();
+        Secret secret;
+
+        /**
+         * The client secret
+         */
+        @ConfigItem
+        Jwt jwt;
 
         public Optional<String> getSecret() {
-            return secret;
+            return secret.secret;
         }
 
         public void setSecret(String secret) {
-            this.secret = Optional.of(secret);
+            this.secret = new Secret(secret);
         }
     }
 

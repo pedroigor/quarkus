@@ -76,8 +76,8 @@ public class OidcRecorder {
             options.setClientID(oidcConfig.getClientId().get());
         }
 
-        if (oidcConfig.getCredentials().secret.isPresent()) {
-            options.setClientSecret(oidcConfig.getCredentials().secret.get());
+        if (oidcConfig.getCredentials().secret.secret.isPresent()) {
+            options.setClientSecret(oidcConfig.getCredentials().secret.secret.get());
         }
         if (oidcConfig.getPublicKey().isPresent()) {
             options.addPubSecKey(new PubSecKeyOptions()
