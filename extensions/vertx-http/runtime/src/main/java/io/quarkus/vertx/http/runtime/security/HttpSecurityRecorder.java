@@ -209,4 +209,13 @@ public class HttpSecurityRecorder {
             }
         };
     }
+
+    public Supplier<?> setupMtlsClientAuth() {
+        return new Supplier<MtlsAuthenticationMechanism>() {
+            @Override
+            public MtlsAuthenticationMechanism get() {
+                return new MtlsAuthenticationMechanism();
+            }
+        };
+    }
 }
