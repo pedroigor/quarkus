@@ -228,7 +228,7 @@ public class QuarkusTestExtension
                     curatedApplication.close();
                 }
             }, "Quarkus Test Cleanup Shutdown task"));
-            return new ExtensionState(testResourceManager, shutdownTask);
+            return new ExtensionState(testResourceManager, shutdownTask, Thread.currentThread().getContextClassLoader());
         } catch (Throwable e) {
 
             try {
@@ -671,10 +671,12 @@ public class QuarkusTestExtension
 
         private final Closeable testResourceManager;
         private final Closeable resource;
+        private final ClassLoader runtimeClassLoader;
 
-        ExtensionState(Closeable testResourceManager, Closeable resource) {
+        ExtensionState(Closeable testResourceManager, Closeable resource, ClassLoader runtimeClassLoader) {
             this.testResourceManager = testResourceManager;
             this.resource = resource;
+            this.runtimeClassLoader = runtimeClassLoader;
         }
 
         @Override
@@ -682,10 +684,11 @@ public class QuarkusTestExtension
             try {
                 resource.close();
             } finally {
+                setCCL(runtimeClassLoader);
+                testResourceManager.close();
                 if (QuarkusTestExtension.this.originalCl != null) {
                     setCCL(QuarkusTestExtension.this.originalCl);
                 }
-                testResourceManager.close();
             }
         }
     }
