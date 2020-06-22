@@ -197,7 +197,6 @@ public class QuarkusTestExtension
 
             System.setProperty("test.url", TestHTTPResourceManager.getUri(runningQuarkusApplication));
 
-            Closeable tm = testResourceManager;
             Closeable shutdownTask = new Closeable() {
                 @Override
                 public void close() throws IOException {
@@ -219,7 +218,6 @@ public class QuarkusTestExtension
                                     System.setProperty(entry.getKey(), val);
                                 }
                             }
-                            tm.close();
                         }
                     }
                 }
@@ -227,13 +225,7 @@ public class QuarkusTestExtension
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        shutdownTask.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        curatedApplication.close();
-                    }
+                    curatedApplication.close();
                 }
             }, "Quarkus Test Cleanup Shutdown task"));
             return new ExtensionState(testResourceManager, shutdownTask);
